@@ -5,6 +5,9 @@ const morgan=require('morgan');
 // Load env vars
 dotenv.config({ path: './config/config.env'});
 
+// db
+const connectDB=require('./config/db');
+
 // Route files
 const bootcamps=require('./routes/bootcamps');
 
@@ -20,4 +23,13 @@ app.use('/api/v1/bootcamps', bootcamps);
 
 const PORT=process.env.PORT || 3000;
 
-app.listen(PORT, console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}...`));
+const start=async()=>{
+    try {
+        await connectDB(process.env.MONGO_URI);
+        app.listen(PORT, console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}...`));
+    } catch (error) {
+        console.log(`Someting went wrong!`)
+    }
+}
+
+start();
