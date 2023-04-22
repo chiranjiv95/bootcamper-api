@@ -30,6 +30,12 @@ exports.createCourse=asyncHandler(async(req, res, next)=>{
         const message=`Bootcamp with ID: ${req.body.bootcamp} doesn't exist!`;
         return next(new ErrorResponse(message , 404));
     }
+
+    // Make sure the user is bootcamp owner
+    if(bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin'){
+        return next(new ErrorResponse(`User ${req.user.id} is not authorized to add course to bootcamp ${bootcamp._id}`, 401));
+    };
+
     const course=await Course.create(req.body);
     res.status(201).json({success:true, data:course});
 });
@@ -53,11 +59,20 @@ exports.getCourse=asyncHandler( async(req, res, next)=>{
 // @route   PUT /api/v1/courses/:id
 // @access  Private
 exports.updateCourse=asyncHandler(async(req, res, next)=>{
-    const course=await Course.findByIdAndUpdate({_id:req.params.id},req.body, {new:true, runValidators:true});
+    let course=await Course.findById({_id:req.params.id});
     if(!course){
         const message=`Course with ID: ${req.params.id} doesn't exist!`;
         return next(new ErrorResponse(message , 404));
-    }
+    };
+
+    // Make sure the user is bootcamp owner
+    const bootcamp=await Bootcamp.findById(course.bootcamp);
+    if(bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin'){
+        return next(new ErrorResponse(`User ${req.user.id} is not authorized to update this course`, 401));
+    };
+
+    course=await Course.findByIdAndUpdate({_id:req.params.id},req.body, {new:true, runValidators:true})
+
     res.status(201).json({success:true, data:course});
 });
 
@@ -71,6 +86,12 @@ exports.deleteCourse=asyncHandler(async(req, res, next)=>{
         return next(new ErrorResponse(message , 404));
     }
 
+    // Make sure the user is bootcamp owner
+    const bootcamp=await Bootcamp.findById(course.bootcamp);
+    if(bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin'){
+        return next(new ErrorResponse(`User ${req.user.id} is not authorized to delete this course`, 401));
+    };
+ 
     await course.deleteOne();
     res.status(200).json({success:true});
 });
