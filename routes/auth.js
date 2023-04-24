@@ -1,7 +1,7 @@
 const express=require('express');
 const router=express.Router();
 
-const {register, login, getMe, forgotPassword, resetPassword, updateDetails,
+const {register, login, logout, getMe, forgotPassword, resetPassword, updateDetails,
 updatePassword}=require('../controllers/auth');
 const {protect}=require('../middleware/auth');
 
@@ -12,6 +12,10 @@ router
 router
     .route('/login')
     .post(login)
+
+router
+    .route('/logout')
+    .get(logout)
 
 router
     .route('/me')
